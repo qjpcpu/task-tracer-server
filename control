@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+[ -z "$DEBUG" ] && export DEBUG=http,ttServer:*
+[ -z "$NODE_ENV" ] && export NODE_ENV=production
+
+case X$1 in
+    Xstart)
+        if [ -z "`pm2 list|grep ttServer`" ];then
+            pm2 start bin/www -n ttServer --merge-logs -l logs/info.log --env DEBUG --env NODE_ENV
+        else
+            pm2 start ttServer
+        fi
+        echo 'ttServer started'
+        ;;
+    Xstop)
+        pm2 stop ttServer
+        echo 'ttServer stopped'
+        ;;
+    Xrestart)
+        pm2 restart ttServer
+        echo 'ttServer restarted'
+        ;;
+    X*)
+        echo "Usage: $0  start|stop|restart"
+        exit -1
+        ;;
+esac        

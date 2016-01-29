@@ -1,0 +1,47 @@
+extends ./layout
+block css
+  link(rel="stylesheet",href="/assets/stylesheets/task.css")
+
+block content 
+  .row
+    .col-lg-12
+      .panel.panel-default
+        .panel-heading 任务信息
+        .panel-body
+          table.table-hover
+            tr
+              td 任务名称
+              td.tname= name
+            tr
+              td 源
+              td.tsource 未知
+            tr
+              td 活动源个数
+              td.tsourceNum 0
+            tr
+              td 命令
+              td.tcmd ...
+            tr 
+              td 状态
+              td.tstate 未知
+  .row
+    .col-lg-12
+      .shell-wrap
+        p.shell-top-bar 任务:#{name}
+        ul.shell-body
+          li.cursor loading output......
+
+  .modal.fade#myModal(tabindex='-1',role='dialog')
+    .modal-dialog
+      .modal-content
+        .modal-header
+          button.close(type="button",data-dismiss="modal",aria-label="Close")
+            span(aria-hidden="true") &times;
+          h4.modal-title -
+        .modal-body
+          pre.modal-cmd -
+        .modal-footer
+          button.btn.btn-default(data-dismiss='modal',type='button') 确定
+
+block js
+  script(src="/assets/scripts/task.js")

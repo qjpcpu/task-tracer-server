@@ -1,0 +1,25 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1')  
+    title= "TaskTracer"
+    link(rel="stylesheet",href="/assets/stylesheets/bootstrap.min.css")
+    link(rel="stylesheet",href="/assets/stylesheets/toastr.css")
+    block css
+  body
+    .container.marketing
+      block content
+
+      hr.featurette-divider
+      // /END THE FEATURETTES
+      // FOOTER
+      footer
+        p
+          | © 2016 Company, Inc. · 
+          a(href='#') Privacy
+          |  · 
+          a(href='#') Terms
+
+    block js
