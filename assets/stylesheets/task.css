@@ -74,3 +74,6 @@ table {
   white-space: pre-wrap;
 }
 
+.stderr {
+  color: red;
+}

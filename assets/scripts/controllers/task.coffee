@@ -47,8 +47,9 @@ $ ->
   socket.on 'data',(data) ->
     console.log "got",data
     if data.from == watchConfig.target
+      style = if data.data.type == 'STDERR' then 'stderr' else 'stdout'
       for line in data.data.data.split("\n")
-        $('ul.shell-body').append "<li>#{line}</li>"
+        $('ul.shell-body').append "<li class='#{style}'>#{line}</li>"
       $('ul.shell-body').scrollTop($('ul.shell-body')[0].scrollHeight)
 
   socket.on 'eof', (data) ->
@@ -66,10 +67,12 @@ $ ->
   socket.on 'workerIn', (data) ->
     console.log "worker in",data
     jobInfo.workers.push data.from
+    socket.emit 'attach',from: [data.from]
     $('td.tsourceNum').text jobInfo.workers.length
 
   socket.on 'workerOut', (data) ->
     console.log "worker lost",data
+    socket.emit 'detach',from: [data.from]
     jobInfo.workers = (w for w in jobInfo.workers when w != data.from)
     $('td.tsourceNum').text jobInfo.workers.length
     if data.from == watchConfig.target
