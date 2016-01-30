@@ -23,8 +23,10 @@ app.set('port', port);
 
 var server = http.createServer(app);
 var io = require('socket.io')(server);
-var redis = require('socket.io-redis');
-io.adapter(redis({ host: config.redis.host, port: config.redis.port,db: config.redis.db,key: 'socket.io' }));
+if (config.redis) {
+  var redis = require('socket.io-redis');
+  io.adapter(redis({ host: config.redis.host, port: config.redis.port,db: config.redis.db,key: 'socket.io' }));
+}
 ss.set(io);
 
 /**
