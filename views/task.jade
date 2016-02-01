@@ -10,26 +10,17 @@ block content
         .panel-body
           table.table-hover
             tr
-              td 任务名称
+              th 任务名称
+              th 状态
+              th 活动节点(个)
+            tr
               td.tname= name
-            tr
-              td 源
-              td.tsource 未知
-            tr
-              td 活动源个数
+              td.tstate unknown
               td.tsourceNum 0
-            tr
-              td 命令
-              td.tcmd ...
-            tr 
-              td 状态
-              td.tstate 未知
-  .row
-    .col-lg-12
-      .shell-wrap
-        p.shell-top-bar 任务:#{name}
-        ul.shell-body
-          li.cursor loading output......
+          hr
+          ul.list-inline.workers-list
+          
+  .terminals
 
   .modal.fade#myModal(tabindex='-1',role='dialog')
     .modal-dialog
@@ -37,9 +28,12 @@ block content
         .modal-header
           button.close(type="button",data-dismiss="modal",aria-label="Close")
             span(aria-hidden="true") &times;
-          h4.modal-title -
+          h4.modal-title 节点:-
         .modal-body
-          pre.modal-cmd -
+          form
+            .form-group
+              lable 命令内容:
+              pre.modal-cmd -
         .modal-footer
           button.btn.btn-default(data-dismiss='modal',type='button') 确定
 

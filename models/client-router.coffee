@@ -1,4 +1,5 @@
 debug = require 'debug'
+async = require 'async'
 config = require '../config'
 jwt = require 'jsonwebtoken'
 
@@ -15,13 +16,25 @@ class ClientRouter
     
     # set room
     clientConfig.room = "#{clientConfig.task.name}:#{clientConfig.id}"
-    socket.in(clientConfig.task.name).emit 'workerIn', from: clientConfig.id
-    socket.in(clientConfig.room).emit 'start',
-      from: clientConfig.id
-      task: clientConfig.task
-
-    log "监控client(#{clientConfig.id})执行任务[#{clientConfig.task.name}]"
-    log clientConfig.task.cmd
+    async.waterfall [
+      (cb) ->
+        socket.in(clientConfig.task.name).emit 'workerIn', from: clientConfig.id
+        setTimeout cb,500
+      (cb) ->
+        socket.in(clientConfig.room).emit 'start',
+          from: clientConfig.id
+          task: clientConfig.task
+        log "监控client(#{clientConfig.id})执行任务[#{clientConfig.task.name}]"
+        log clientConfig.task.cmd
+        cb()
+    ], (err) ->
+      browserPayload =
+        type: 'browser_token'
+      browserToken = jwt.sign browserPayload, jwtCfg.browserToken.secret, jwtCfg.browserToken.options
+      log jwtCfg.browserToken.secret
+      log browserToken    
+      socket.emit 'authenticated',
+        httpUrl: "#{config.me.host}/tasks/#{clientConfig.task.name}/?accessToken=#{browserToken}&id=#{clientConfig.id}"
 
     socket.on 'data', (data) ->
       log 'got data:',data
@@ -41,16 +54,5 @@ class ClientRouter
         log "#{clientConfig.id} leave"
       else
         log 'client leave'
-
-    browserPayload =
-      type: 'browser_token'
-    
-    browserToken = jwt.sign browserPayload, jwtCfg.browserToken.secret, jwtCfg.browserToken.options
-    log jwtCfg.browserToken.secret
-    log browserToken
-
-    socket.emit 'authenticated',
-      httpUrl: "#{config.me.host}/tasks/#{clientConfig.task.name}/?accessToken=#{browserToken}&id=#{clientConfig.id}"
-
 
 module.exports = ClientRouter

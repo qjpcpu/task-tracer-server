@@ -5,12 +5,80 @@ socketio = require 'socket.io-client'
 urlPrase = require 'url-parse'
 $ ->
   jobInfo = 
-    workers: []
+    workers: {}
+
+  flushWorkers =  ->
+    for from,w of jobInfo.workers
+      if $(".workers-list li##{from} .twinkle").length > 0
+        if w.active
+          $(".workers-list li##{from} .twinkle").addClass('twinkle-on')
+        else
+          $(".workers-list li##{from} .twinkle").removeClass('twinkle-on')
+        $(".workers-list li##{from} input.worker-visible").prop "checked", w.visible 
+      else
+        style = if w.active then 'twinkle-on' else ''
+        workerVisible = if w.visible then 'checked' else ''
+        $(".workers-list").append "<li id='#{from}'>
+        <div class='twinkle #{style}'></div>
+        <input type='checkbox' name='#{from}' class='worker-visible' #{workerVisible}>
+        <a href='#' class='worker-detail'>#{from}</a>
+        </li>"
+      if $(".terminals .term-#{from}").length == 0 and w.visible
+        htmlStr = "<div class='row term-#{from}'>
+          <div class='col-lg-12'>
+            <div class='shell-wrap'>
+              <div class='titlebar'>
+                <div class='buttons'>
+                  <div class='close'>
+                    <a class='closebutton' href='#' id='#{from}'><span><strong>x</strong></span></a>
+                  </div>
+                </div>
+                节点: #{from}
+              </div>
+              <ul class='shell-body'>
+                <li class='cursor'>loading output......</li>
+              </ul>
+            </div>
+          </div>
+        </div><br/>"
+        $('.terminals').append htmlStr
+      act = if w.visible then 'show' else 'hide'
+      $(".terminals .term-#{from}")[act]('fast')
+
+    $('a.worker-detail').off('click').on 'click', ->
+      workerId = $(this).text()
+      task = jobInfo.workers[workerId].task
+      $('.modal-cmd').text task?.cmd or '[node not connected]'
+      $('.modal-title').text "节点: #{workerId}"
+      $('#myModal').modal 'show'
+    $('a.closebutton').off('click').on 'click', ->
+      id = $(this).attr('id')
+      if id and jobInfo.workers[id]
+        jobInfo.workers[id].visible = false
+        flushWorkers()
+    $('input.worker-visible').off('change').on 'change', ->
+      id = $(this).attr('name')
+      if id and jobInfo.workers[id]
+        jobInfo.workers[id].visible = $(this).is(':checked')
+        flushWorkers()
+
+    if jobInfo.socket
+      attachList = (w for w,x of jobInfo.workers when x.visible)
+      jobInfo.socket.emit 'attach',from: attachList if attachList.length > 0
+      detachList = (w for w,x of jobInfo.workers when not x.visible)
+      jobInfo.socket.emit 'detach',from: detachList if detachList.length > 0
+
 
   url = urlPrase window.location.href,true
   token = url.query.accessToken
 
-  watchConfig = {}
+  if url.query.id
+    jobInfo.workers[url.query.id] = 
+      from: url.query.id
+      active: false
+      visible: true
+    flushWorkers()
+
   socket = socketio "#{window.location.protocol}//#{window.location.host}"
   socket.on 'connect', ->
     socket.emit 'authenticate',
@@ -21,61 +89,59 @@ $ ->
         from: [ url.query.id ]
 
   socket.on 'authenticated', (data) ->
-    console.log "authenticated data:",data
     if data.error
       $('p.shell-top-bar').text data.error
     else
-      $('p.shell-top-bar').text "任务名称: #{data.task.name} 来源: #{data.from[0]}"
-      $('td.tname').text data.task.name
-      $('td.tsource').text data.from[0]
-      watchConfig.target = data.from[0]
+      jobInfo.socket = socket
   
   socket.on 'start',(data) ->
-    console.log "task info",data
-    if data.from == watchConfig.target
-      $('.modal-cmd').text data.task.cmd
-      $('.modal-title').text "任务#{data.task.name}命令内容"
-      if data.task.cmd.length > 25
-        showCmd = data.task.cmd[0..24] + '...'
-        $('td.tcmd').html "<a href data-toggle='modal' data-target='#myModal'>#{showCmd}</a>"
-      else 
-        showCmd = data.task.cmd
-        $('td.tcmd').html showCmd
-      
-      $('td.tstate').text '执行中...'
+    if jobInfo.workers[data.from]
+      jobInfo.workers[data.from].task = data.task
 
   socket.on 'data',(data) ->
-    console.log "got",data
-    if data.from == watchConfig.target
+    if jobInfo.workers[data.from]
       style = if data.data.type == 'STDERR' then 'stderr' else 'stdout'
       for line in data.data.data.split("\n")
-        $('ul.shell-body').append "<li class='#{style}'>#{line}</li>"
-      $('ul.shell-body').scrollTop($('ul.shell-body')[0].scrollHeight)
+        $(".terminals .term-#{data.from} ul.shell-body").append "<li class='#{style}'>#{line}</li>"
+      $(".terminals .term-#{data.from} ul.shell-body").scrollTop($(".terminals .term-#{data.from} ul.shell-body")[0].scrollHeight)
 
   socket.on 'eof', (data) ->
     console.log 'eof',data
-    if data.from == watchConfig.target
+    if jobInfo.workers[data.from]
       if data.code == 0
         msg = '任务成功完成'
       else
         msg = "执行结束, 退出码: #{data.code}"
         msg += ",终止信号: #{data.signal}" if data.signal
-      $('td.tstate').text msg
-      $('ul.shell-body').append "<li class='cursor'>#{msg}!</li>"
-      $('ul.shell-body').scrollTop($('ul.shell-body')[0].scrollHeight)
+      $(".terminals .term-#{data.from} ul.shell-body").append "<li class='cursor'>#{msg}!</li>"
+      $(".terminals .term-#{data.from} ul.shell-body").scrollTop($(".terminals .term-#{data.from} ul.shell-body")[0].scrollHeight)
 
   socket.on 'workerIn', (data) ->
     console.log "worker in",data
-    jobInfo.workers.push data.from
-    socket.emit 'attach',from: [data.from]
-    $('td.tsourceNum').text jobInfo.workers.length
+    unless jobInfo.workers[data.from]
+      jobInfo.workers[data.from] =
+        from: data.from
+        active: true
+        visible: false
+    onlyOne = (w for w,x of jobInfo.workers).length == 1
+    jobInfo.workers[data.from].active = true
+    jobInfo.workers[data.from].visible = true if onlyOne
+    flushWorkers()
+    $('td.tsourceNum').text (w for w,x of jobInfo.workers when x.active).length
+    if (w for w,x of jobInfo.workers when x.active).length > 0
+      $('td.tstate').text '执行中...'
+    else
+      $('td.tstate').text '执行结束'    
 
   socket.on 'workerOut', (data) ->
     console.log "worker lost",data
-    socket.emit 'detach',from: [data.from]
-    jobInfo.workers = (w for w in jobInfo.workers when w != data.from)
-    $('td.tsourceNum').text jobInfo.workers.length
-    if data.from == watchConfig.target
-      $('td.tstate').text "异常终止" if /执行中/.test $('td.tstate').text()
+    for w,x of jobInfo.workers
+      x.active = false if w == data.from
+    flushWorkers()
+    $('td.tsourceNum').text (w for w,x of jobInfo.workers when x.active).length
+    if (w for w,x of jobInfo.workers when x.active).length > 0
+      $('td.tstate').text '执行中...'
+    else
+      $('td.tstate').text '执行结束'
 
 
