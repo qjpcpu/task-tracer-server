@@ -6,13 +6,13 @@ block content
   .row
     .col-lg-12
       .panel.panel-default
-        .panel-heading 任务信息
+        .panel-heading task information
         .panel-body
           table.table-hover
             tr
-              th 任务名称
-              th 状态
-              th 活动节点(个)
+              th Name
+              th State
+              th Active Nodes
             tr
               td.tname= name
               td.tstate unknown
@@ -28,14 +28,14 @@ block content
         .modal-header
           button.close(type="button",data-dismiss="modal",aria-label="Close")
             span(aria-hidden="true") &times;
-          h4.modal-title 节点:-
+          h4.modal-title Node:-
         .modal-body
           form
             .form-group
-              lable 命令内容:
+              lable Command:
               pre.modal-cmd -
         .modal-footer
-          button.btn.btn-default(data-dismiss='modal',type='button') 确定
+          button.btn.btn-default(data-dismiss='modal',type='button') OK
 
 block js
   script(src="/assets/scripts/task.js")

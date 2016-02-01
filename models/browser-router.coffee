@@ -10,7 +10,7 @@ class BrowserRouter
     unless browserConfig.task?.name? and browserConfig.from? and (browserConfig.from instanceof Array) and browserConfig.from.length > 0
       log "browser data error",browserConfig
       socket.emit 'authenticated', error: "browser data error"
-      socket.disconnect()
+      setTimeout (-> socket.disconnect()),1000
       return
 
     socket.on 'disconnect', ->

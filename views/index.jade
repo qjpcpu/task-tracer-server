@@ -1,18 +1,19 @@
-doctype html
-html
-  head
-    meta(charset='utf-8')
-    meta(http-equiv='X-UA-Compatible', content='IE=edge')
-    meta(name='viewport', content='width=device-width, initial-scale=1')  
-    title= "微信公众平台"
-    link(rel="stylesheet",href="/assets/stylesheets/bootstrap.min.css")
-    link(rel="stylesheet",href="/assets/stylesheets/index.css")
-  body
-    .container
-      h3.txt 扫描二维码登录
-      div#login-qrcode.txt
-      input(type='hidden',value="#{clientId}",id='clientId')
-      p.info.txt= error
+extends ./layout
+block css
+  link(rel="stylesheet",href="/assets/stylesheets/task.css")
 
-    script(src="/assets/scripts/index.js")
+block content 
+  .row
+    .col-lg-12
+      .panel.panel-default
+        .panel-heading Realtime task tracer
+        .panel-body
+          form
+            .form-group.row
+              label.col-sm-2.form-control-label TaskName
+              .col-sm-10
+                input#task-name.form-control(type="text",placeholder="input the task name you wanna trace")
+          button.btn.btn-default.start-trace(type='button') OK 
 
+block js
+  script(src="/assets/scripts/index.js")

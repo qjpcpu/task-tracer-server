@@ -33,7 +33,7 @@ $ ->
                     <a class='closebutton' href='#' id='#{from}'><span><strong>x</strong></span></a>
                   </div>
                 </div>
-                节点: #{from}
+                node: #{from}
               </div>
               <ul class='shell-body'>
                 <li class='cursor'>loading output......</li>
@@ -49,7 +49,7 @@ $ ->
       workerId = $(this).text()
       task = jobInfo.workers[workerId].task
       $('.modal-cmd').text task?.cmd or '[node not connected]'
-      $('.modal-title').text "节点: #{workerId}"
+      $('.modal-title').text "node: #{workerId}"
       $('#myModal').modal 'show'
     $('a.closebutton').off('click').on 'click', ->
       id = $(this).attr('id')
@@ -109,10 +109,10 @@ $ ->
     console.log 'eof',data
     if jobInfo.workers[data.from]
       if data.code == 0
-        msg = '任务成功完成'
+        msg = 'task finished with success'
       else
-        msg = "执行结束, 退出码: #{data.code}"
-        msg += ",终止信号: #{data.signal}" if data.signal
+        msg = "task finished, exit code: #{data.code}"
+        msg += ",exit signal: #{data.signal}" if data.signal
       $(".terminals .term-#{data.from} ul.shell-body").append "<li class='cursor'>#{msg}!</li>"
       $(".terminals .term-#{data.from} ul.shell-body").scrollTop($(".terminals .term-#{data.from} ul.shell-body")[0].scrollHeight)
 
@@ -129,9 +129,9 @@ $ ->
     flushWorkers()
     $('td.tsourceNum').text (w for w,x of jobInfo.workers when x.active).length
     if (w for w,x of jobInfo.workers when x.active).length > 0
-      $('td.tstate').text '执行中...'
+      $('td.tstate').text 'running...'
     else
-      $('td.tstate').text '执行结束'    
+      $('td.tstate').text 'task finished'    
 
   socket.on 'workerOut', (data) ->
     console.log "worker lost",data
@@ -140,8 +140,8 @@ $ ->
     flushWorkers()
     $('td.tsourceNum').text (w for w,x of jobInfo.workers when x.active).length
     if (w for w,x of jobInfo.workers when x.active).length > 0
-      $('td.tstate').text '执行中...'
+      $('td.tstate').text 'running...'
     else
-      $('td.tstate').text '执行结束'
+      $('td.tstate').text 'task finished'
 
 

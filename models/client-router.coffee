@@ -9,9 +9,9 @@ log = debug 'ttServer:client-router'
 class ClientRouter
   forSocket: (socket,clientConfig) ->
     unless /^[\da-zA-Z][\d_-a-zA-Z\.]*/.test clientConfig.task.name
-      log "任务名称[#{clientConfig.task.name}]包含特殊字符!"
-      socket.emit 'authenticated', error: "任务名称[#{clientConfig.task.name}]非法,仅能包含字母数字及'.-_'且以字母或数字开头!"
-      socket.disconnect()
+      log "task name[#{clientConfig.task.name}]contains invalid name!"
+      socket.emit 'authenticated', error: "invalid task name[#{clientConfig.task.name}], task name can only have '.-_a-zA-Z' and start with chars!"
+      setTimeout (-> socket.disconnect()),1000
       return
     
     # set room
@@ -24,7 +24,7 @@ class ClientRouter
         socket.in(clientConfig.room).emit 'start',
           from: clientConfig.id
           task: clientConfig.task
-        log "监控client(#{clientConfig.id})执行任务[#{clientConfig.task.name}]"
+        log "monitor client(#{clientConfig.id})for task[#{clientConfig.task.name}]"
         log clientConfig.task.cmd
         cb()
     ], (err) ->
@@ -41,12 +41,16 @@ class ClientRouter
       socket.in(clientConfig.room).emit 'data',from: clientConfig.id,data: data
 
     socket.on 'eof', (data) ->
-      log "client:#{clientConfig.id},任务:#{clientConfig.task.name} exit with #{data.code}"
+      log "client:#{clientConfig.id},task:#{clientConfig.task.name} exit with #{data.code}"
       socket.in(clientConfig.room).emit 'eof',
         from: clientConfig.id
         code: data.code
         signal: data.signal
-      socket.disconnect()
+      socket.emit 'bye',
+        code: data.code
+        signal: data.signal
+      setTimeout (-> socket.disconnect()),5000
+      
 
     socket.on 'disconnect', ->
       if clientConfig
