@@ -1,3 +1,12 @@
+mkdirp = require 'mkdirp'
+fs = require 'fs'
+path = require 'path'
+CSON = require 'cson'
+debug = require 'debug'
+
+log = debug 'ttServer:config'
+mkdirp.sync path.join(__dirname,'rc')
+
 config =
   me:
     host: 'http://localhost:8004'
@@ -16,5 +25,15 @@ config =
       options:
         algorithm: 'HS256'
         expiresIn: '1 day' # expressed in seconds or an string describing a time span rauchg/ms. Eg: 60, "2 days", "10h", "7d"
+
+filename = path.join __dirname,'rc/real-config.json'
+
+try
+  fs.statSync filename
+  config = CSON.parseJSONFile filename
+catch err
+  confStr = CSON.createJSONString config
+  fs.writeFile filename, confStr, (werr) ->
+    log "dump config to #{filename}"
 
 module.exports = config

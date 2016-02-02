@@ -3,3 +3,5 @@ bower_components/
 public/
 .DS_Store
 logs/
+tmp/
+/rc
