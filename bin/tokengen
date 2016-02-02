@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+require("coffee-script/register")
+var inquirer, jwt, jwtCfg;
+inquirer = require("inquirer");
+jwtCfg = require('../config').jwt;
+jwt = require('jsonwebtoken');
+inquirer.prompt([
+  {
+    type: 'list',
+    name: 'period',
+    message: 'Select browser token valid period',
+    choices: [
+      {
+        name: '1 day',
+        value: '1 day'
+      }, {
+        name: '7 days',
+        value: '7 days'
+      }, {
+        name: '1 month',
+        value: '30 days'
+      }, {
+        name: '3 months',
+        value: '180 days'
+      }, {
+        name: '1 year',
+        value: '1 year'
+      }
+    ]
+  }
+], function(answers) {
+  var browserPayload, browserToken, options;
+  browserPayload = {
+    type: 'browser_token'
+  };
+  options = {
+    algorithm: jwtCfg.browserToken.options.algorithm,
+    expiresIn: answers.period
+  };
+  browserToken = jwt.sign(browserPayload, jwtCfg.browserToken.secret, options);
+  return console.log("Your token is:\n" + browserToken);
+});
