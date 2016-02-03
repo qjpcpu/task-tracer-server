@@ -7,8 +7,22 @@ jwt = require('jsonwebtoken');
 inquirer.prompt([
   {
     type: 'list',
+    name: 'type',
+    message: 'Select token type',
+    choices: [
+      {
+        name: 'Browser token',
+        value: 'browser_token'
+      }, {
+        name: 'Client token',
+        value: 'client_token'
+      }
+    ]
+  },
+  {
+    type: 'list',
     name: 'period',
-    message: 'Select browser token valid period',
+    message: 'Select token valid period',
     choices: [
       {
         name: '1 day',
@@ -31,7 +45,7 @@ inquirer.prompt([
 ], function(answers) {
   var browserPayload, browserToken, options;
   browserPayload = {
-    type: 'browser_token'
+    type: answers.type
   };
   options = {
     algorithm: jwtCfg.browserToken.options.algorithm,
