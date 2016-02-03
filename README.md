@@ -1,4 +1,4 @@
-TaskTracer(client) - Real-time process monitoring
+TaskTracer(server) - Real-time process monitoring
 =================================================
 
 Powered by [node.js](http://nodejs.org) + [socket.io](http://socket.io)
