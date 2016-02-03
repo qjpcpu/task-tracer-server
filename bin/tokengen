@@ -43,14 +43,15 @@ inquirer.prompt([
     ]
   }
 ], function(answers) {
-  var browserPayload, browserToken, options;
-  browserPayload = {
+  var payload, token, options, secret;
+  payload = {
     type: answers.type
   };
   options = {
-    algorithm: jwtCfg.browserToken.options.algorithm,
+    algorithm: answers.type === 'client_token' ? jwtCfg.clientToken.options.algorithm : jwtCfg.browserToken.options.algorithm,
     expiresIn: answers.period
   };
-  browserToken = jwt.sign(browserPayload, jwtCfg.browserToken.secret, options);
-  return console.log("Your token is:\n" + browserToken);
+  secret = answers.type === 'client_token' ? jwtCfg.clientToken.secret : jwtCfg.browserToken.secret;
+  token = jwt.sign(payload, secret, options);
+  return console.log("Your token is:\n" + token);
 });
