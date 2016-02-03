@@ -95,5 +95,6 @@ gulp.task 'serve', ->
   server = gls.new 'bin/www'
   server.start()
   gulp.watch ['./app.coffee','./routes/*.coffee','./models/*.coffee','./views/**/*.jade'], (file) ->
-    console.log 'Reload server'
-    server.notify.apply server, [file]    
+    server.stop().then ->
+      server.start()
+      console.log 'Reload server OK'
