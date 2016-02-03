@@ -85,3 +85,103 @@ I am ubuntu
 ```
 
 ![output.png](https://raw.githubusercontent.com/qjpcpu/task-tracer-server/master/snapshots/output.png)
+
+## Interfaces
+
+Intergrate tt into your app is easy. Implement interfaces below with [sockt.io](http://socket.io/)
+
+### ttServer interfaces
+### 1. authenticate
+
+Trigger `authenticate` event on server, better to trigger this event when connected to ttServer.
+
+```
+socket.on('connect', function() {
+  return socket.emit('authenticate', {
+    type: 'browser_token',
+    token: 'YOUR Browser token',
+    watch: {
+      task: 'test',
+      from: ['client-id']
+    }
+  });
+});
+```
+### 2. attach,detach
+
+Trace task from certain client, tell ttServer you want `attach`; Otherwise, `detach` from certain client if not to trace anymore.
+
+```
+socket.emit('attach', {
+  from: ['client-id2', 'client-id3']
+});
+
+socket.emit('detach', {
+  from: ['client-id3']
+});
+```
+
+### local interfaces
+
+### 1. authenticated
+
+when ttServer complete authentication,the `authenticated` event would be triggered.
+
+```
+socket.on('authenticated', function(data) {
+  if (data.error) {
+    return console.log(data.error);
+  } else {
+    return console.log('auth OK');
+  }
+});
+```
+
+### 2. start
+
+Certain client start to run task.
+
+```
+socket.on('start', function(data) {
+  return console.log(data.from + " start to run");
+});
+```
+
+### 3. data
+
+New data from client comming.
+
+```
+socket.on('data', function(msg) {
+  console.log("new " + msg.data.type + " data from: " + msg.from);
+  return console.log(msg.data.data);
+});
+```
+
+### 4. eof
+
+Task finish on certain client.
+
+```
+socket.on('eof', function(msg) {
+  console.log(msg.from + " finish!");
+  console.log("Exit code=" + msg.code);
+  if (msg.signal) {
+    return console.log(msg.from + " exit because signal " + msg.signal);
+  }
+});
+```
+
+### 5. workerIn/workerOut
+
+When client connected/disconnected to/from ttServer, your browser would get this event.
+
+```
+socket.on('workerIn', function(data) {
+  return console.log(data.from + " come and ready for task");
+});
+
+socket.on('workerOut', function(data) {
+  return console.log(data.from + " leave");
+});
+```
