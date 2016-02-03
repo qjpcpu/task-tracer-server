@@ -90,7 +90,7 @@ I am ubuntu
 
 Intergrate tt into your app is easy. Implement interfaces below with [sockt.io](http://socket.io/)
 
-### ttServer interfaces
+### Server events
 ### 1. authenticate
 
 Trigger `authenticate` event on server, better to trigger this event when connected to ttServer.
@@ -121,7 +121,7 @@ socket.emit('detach', {
 });
 ```
 
-### local interfaces
+### browser events
 
 ### 1. authenticated
 
