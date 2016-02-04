@@ -58,9 +58,9 @@ $ ->
                 if jobInfo.socket
                   jobInfo.socket.emit 'detach',from: [id]        
           else
-            worker.doms.terminal.style.visibility = 'visible'
+            $(worker.doms.terminal).show('fast')
         else if worker.doms.terminal?
-            worker.doms.terminal.style.visibility = 'hidden'
+            $(worker.doms.terminal).hide('fast')
       else
         worker.doms = {}
         # create twinkle light
