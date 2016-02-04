@@ -67,7 +67,7 @@ $ ->
         lightDom = document.createElement "li"
         lightDom.id = wid
         _div = document.createElement 'div'
-        _div.setAttribute 'class','twinkle'
+        _div.setAttribute 'class',"twinkle twinkle-on"
         lightDom.appendChild _div
         _input = document.createElement 'input'
         _input.type = 'checkbox'
