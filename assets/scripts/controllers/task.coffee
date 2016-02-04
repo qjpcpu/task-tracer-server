@@ -55,17 +55,18 @@ $ ->
       if id and jobInfo.workers[id]
         jobInfo.workers[id].visible = false
         flushWorkers(id,jobInfo.workers[id])
+        if jobInfo.socket
+          jobInfo.socket.emit 'detach',from: [id]        
     $('input.worker-visible').off('change').on 'change', ->
       id = $(this).attr('name')
       if id and jobInfo.workers[id]
         jobInfo.workers[id].visible = $(this).is(':checked')
         flushWorkers(id,jobInfo.workers[id])
-
-    if jobInfo.socket
-      if w.visible
-        jobInfo.socket.emit 'attach',from: [from]
-      else
-        jobInfo.socket.emit 'detach',from: [from]
+        if jobInfo.socket
+          if w.visible
+            jobInfo.socket.emit 'attach',from: [id]
+          else
+            jobInfo.socket.emit 'detach',from: [id]
 
 
   url = urlPrase window.location.href,true
