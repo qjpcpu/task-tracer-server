@@ -182,7 +182,6 @@ $ ->
       $(".terminals .term-#{data.from} ul.shell-body").scrollTop($(".terminals .term-#{data.from} ul.shell-body")[0].scrollHeight)
 
   socket.on 'workerIn', (data) ->
-    console.log "worker in",data
     if jobInfo.workers[data.from]
       jobInfo.workers[data.from].active = true
       jobInfo.workers[data.from].doms.light.getElementsByClassName('twinkle')[0].classList.add 'twinkle-on'
@@ -194,7 +193,6 @@ $ ->
       jobInfo.flushDom data.from
 
   socket.on 'workerOut', (data) ->
-    console.log "worker lost",data
     return unless jobInfo.workers[data.from]
     jobInfo.workers[data.from].active = false
     jobInfo.workers[data.from].doms.light.getElementsByClassName('twinkle')[0].classList.remove 'twinkle-on'
