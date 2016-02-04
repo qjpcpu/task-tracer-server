@@ -181,10 +181,6 @@ $ ->
       $(".terminals .term-#{data.from} ul.shell-body").append "<li class='cursor'>#{msg}!</li>"
       $(".terminals .term-#{data.from} ul.shell-body").scrollTop($(".terminals .term-#{data.from} ul.shell-body")[0].scrollHeight)
 
-  headBar =
-    state: document.getElementsByClassName("tstate")[0]
-    count: document.getElementsByClassName("tsourceNum")[0]
-
   socket.on 'workerIn', (data) ->
     console.log "worker in",data
     if jobInfo.workers[data.from]
@@ -197,20 +193,16 @@ $ ->
         visible: false
       jobInfo.flushDom data.from
 
-    nodeCnt = (w for w,x of jobInfo.workers when x.active).length
-    headBar.count.innerHTML = nodeCnt
-    activeCnt = (w for w,x of jobInfo.workers when x.active).length
-    if activeCnt > 0
-      headBar.state.innerHTML = 'running'
-    else
-      headBar.state.innerHTML = 'task finished'    
-
   socket.on 'workerOut', (data) ->
     console.log "worker lost",data
     return unless jobInfo.workers[data.from]
     jobInfo.workers[data.from].active = false
     jobInfo.workers[data.from].doms.light.getElementsByClassName('twinkle')[0].classList.remove 'twinkle-on'
 
+  headBar =
+    state: document.getElementsByClassName("tstate")[0]
+    count: document.getElementsByClassName("tsourceNum")[0]
+  setInterval (->
     nodeCnt = (w for w,x of jobInfo.workers when x.active).length
     headBar.count.innerHTML = nodeCnt
     activeCnt = (w for w,x of jobInfo.workers when x.active).length
@@ -218,5 +210,6 @@ $ ->
       headBar.state.innerHTML = 'running'
     else
       headBar.state.innerHTML = 'task finished'    
+  ),500
 
 
