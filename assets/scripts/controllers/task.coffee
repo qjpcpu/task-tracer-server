@@ -6,67 +6,132 @@ urlPrase = require 'url-parse'
 $ ->
   jobInfo = 
     workers: {}
-
-  flushWorkers =  (from,w) ->
-    if $(".workers-list li##{from} .twinkle").length > 0
-      if w.active
-        $(".workers-list li##{from} .twinkle").addClass('twinkle-on')
-      else
-        $(".workers-list li##{from} .twinkle").removeClass('twinkle-on')
-      $(".workers-list li##{from} input.worker-visible").prop "checked", w.visible 
-    else
-      style = if w.active then 'twinkle-on' else ''
-      workerVisible = if w.visible then 'checked' else ''
-      $(".workers-list").append "<li id='#{from}'>
-      <div class='twinkle #{style}'></div>
-      <input type='checkbox' name='#{from}' class='worker-visible' #{workerVisible}>
-      <a href='#' class='worker-detail'>#{from}</a>
-      </li>"
-    if $(".terminals .term-#{from}").length == 0 and w.visible
-      htmlStr = "<div class='row term-#{from}'>
-        <div class='col-lg-12'>
-          <div class='shell-wrap'>
-            <div class='titlebar'>
-              <div class='buttons'>
-                <div class='close'>
-                  <a class='closebutton' href='#' id='#{from}'><span><strong>x</strong></span></a>
+    flushDom: (wid) ->
+      ji = this
+      return unless ji.workers[wid]
+      worker = ji.workers[wid]
+      if worker.doms
+        worker.doms.light.getElementsByTagName('input')[0].checked = worker.visible
+        if worker.active
+          worker.doms.light.getElementsByClassName('twinkle')[0].setAttribute 'class','twinkle twinkle-on'
+        else
+          worker.doms.light.getElementsByClassName('twinkle')[0].setAttribute 'class','twinkle'
+        if worker.visible
+          unless worker.doms.terminal?
+            termDom = document.createElement "div"
+            termDom.setAttribute 'class',"row term-#{wid}"
+            termDom.innerHTML = "
+              <div class='col-lg-12'>
+                <div class='shell-wrap'>
+                  <div class='titlebar'>
+                    <div class='buttons'>
+                      <div class='close'>
+                        <a class='closebutton' href='javascript:void(0)' id='#{wid}'><span><strong>x</strong></span></a>
+                      </div>
+                    </div>
+                    node: #{wid}
+                  </div>
+                  <ul class='shell-body'>
+                    <li class='cursor'>loading output......</li>
+                  </ul>
                 </div>
-              </div>
-              node: #{from}
-            </div>
-            <ul class='shell-body'>
-              <li class='cursor'>loading output......</li>
-            </ul>
-          </div>
-        </div>
-      </div><br/>"
-      $('.terminals').append htmlStr
-    act = if w.visible then 'show' else 'hide'
-    $(".terminals .term-#{from}")[act]('fast')
-
-    $('a.worker-detail').off('click').on 'click', ->
-      workerId = $(this).text()
-      task = jobInfo.workers[workerId].task
-      $('.modal-cmd').text task?.cmd or '[node not connected]'
-      $('.modal-title').text "node: #{workerId}"
-      $('#myModal').modal 'show'
-    $('a.closebutton').off('click').on 'click', ->
-      id = $(this).attr('id')
-      if id and jobInfo.workers[id]
-        jobInfo.workers[id].visible = false
-        flushWorkers(id,jobInfo.workers[id])
-        if jobInfo.socket
-          jobInfo.socket.emit 'detach',from: [id]        
-    $('input.worker-visible').off('change').on 'change', ->
-      id = $(this).attr('name')
-      if id and jobInfo.workers[id]
-        jobInfo.workers[id].visible = $(this).is(':checked')
-        flushWorkers(id,jobInfo.workers[id])
-        if jobInfo.socket
-          if w.visible
-            jobInfo.socket.emit 'attach',from: [id]
+              </div>"
+            worker.doms.terminal = termDom
+            _cssTermParent = document.getElementsByClassName('terminals')[0]
+            _cssTermParent.appendChild worker.doms.terminal
+            $('input.worker-visible').off('change').on 'change', ->
+              id = $(this).attr('name')
+              if id and jobInfo.workers[id]
+                w = jobInfo.workers[id]
+                jobInfo.workers[id].visible = $(this).is(':checked')
+                jobInfo.flushDom id
+                if jobInfo.socket
+                  if w.visible
+                    jobInfo.socket.emit 'attach',from: [id]
+                  else
+                    jobInfo.socket.emit 'detach',from: [id]
+            $('a.closebutton').off('click').on 'click', ->
+              id = $(this).attr('id')
+              if id and jobInfo.workers[id]
+                jobInfo.workers[id].visible = false
+                jobInfo.flushDom id
+                if jobInfo.socket
+                  jobInfo.socket.emit 'detach',from: [id]        
           else
-            jobInfo.socket.emit 'detach',from: [id]
+            worker.doms.terminal.style.visibility = 'visible'
+        else if worker.doms.terminal?
+            worker.doms.terminal.style.visibility = 'hidden'
+      else
+        worker.doms = {}
+        # create twinkle light
+        lightDom = document.createElement "li"
+        lightDom.id = wid
+        _div = document.createElement 'div'
+        _div.setAttribute 'class','twinkle'
+        lightDom.appendChild _div
+        _input = document.createElement 'input'
+        _input.type = 'checkbox'
+        _input.name = wid
+        _input.setAttribute 'class','worker-visible'
+        _input.checked = worker.visible
+        lightDom.appendChild _input
+        _a = document.createElement 'a'
+        _a.href = 'javascript:void(0)'
+        _a.setAttribute 'class','worker-detail'
+        _a.text = wid
+        lightDom.appendChild _a
+        # create terminal window
+        if worker.visible
+          termDom = document.createElement "div"
+          termDom.setAttribute 'class',"row term-#{wid}"
+          termDom.innerHTML = "
+            <div class='col-lg-12'>
+              <div class='shell-wrap'>
+                <div class='titlebar'>
+                  <div class='buttons'>
+                    <div class='close'>
+                      <a class='closebutton' href='javascript:void(0)' id='#{wid}'><span><strong>x</strong></span></a>
+                    </div>
+                  </div>
+                  node: #{wid}
+                </div>
+                <ul class='shell-body'>
+                  <li class='cursor'>loading output......</li>
+                </ul>
+              </div>
+            </div>"
+          worker.doms.terminal = termDom
+        worker.doms.light = lightDom
+        # write to html
+        _cssParent = document.getElementsByClassName('workers-list')[0]
+        _cssParent.appendChild lightDom
+        $('a.worker-detail').off('click').on 'click', ->
+          workerId = $(this).text()
+          task = jobInfo.workers[workerId].task
+          $('.modal-cmd').text task?.cmd or '[node not connected]'
+          $('.modal-title').text "node: #{workerId}"
+          $('#myModal').modal 'show'
+        if worker.visible
+          _cssTermParent = document.getElementsByClassName('terminals')[0]
+          _cssTermParent.appendChild worker.doms.terminal
+          $('a.closebutton').off('click').on 'click', ->
+            id = $(this).attr('id')
+            if id and jobInfo.workers[id]
+              jobInfo.workers[id].visible = false
+              jobInfo.flushDom id
+              if jobInfo.socket
+                jobInfo.socket.emit 'detach',from: [id]        
+       $('input.worker-visible').off('change').on 'change', ->
+         id = $(this).attr('name')
+         if id and jobInfo.workers[id]
+           w = jobInfo.workers[id]
+           jobInfo.workers[id].visible = $(this).is(':checked')
+           jobInfo.flushDom id
+           if jobInfo.socket
+             if w.visible
+               jobInfo.socket.emit 'attach',from: [id]
+             else
+               jobInfo.socket.emit 'detach',from: [id]
 
 
   url = urlPrase window.location.href,true
@@ -77,7 +142,7 @@ $ ->
       from: url.query.id
       active: false
       visible: true
-    flushWorkers(url.query.id,jobInfo.workers[url.query.id])
+    jobInfo.flushDom url.query.id
 
   socket = socketio "#{window.location.protocol}//#{window.location.host}"
   socket.on 'connect', ->
@@ -118,30 +183,36 @@ $ ->
 
   socket.on 'workerIn', (data) ->
     console.log "worker in",data
-    unless jobInfo.workers[data.from]
-      jobInfo.workers[data.from] =
+    if jobInfo.workers[data.from]
+      jobInfo.workers[data.from].active = true
+      jobInfo.workers[data.from].doms.light.getElementsByClassName('twinkle')[0].classList.add 'twinkle-on'
+    else
+      jobInfo.workers[data.from] = 
         from: data.from
         active: true
         visible: false
-    onlyOne = (w for w,x of jobInfo.workers).length == 1
-    jobInfo.workers[data.from].active = true
-    jobInfo.workers[data.from].visible = true if onlyOne
-    flushWorkers(data.from,jobInfo.workers[data.from])
-    $('td.tsourceNum').text (w for w,x of jobInfo.workers when x.active).length
-    if (w for w,x of jobInfo.workers when x.active).length > 0
-      $('td.tstate').text 'running...'
+      jobInfo.flushDom data.from
+
+    nodeCnt = (w for w,x of jobInfo.workers when x.active).length
+    document.getElementsByClassName("tsourceNum")[0].innerHTML = nodeCnt
+    activeCnt = (w for w,x of jobInfo.workers when x.active).length
+    if activeCnt > 0
+      document.getElementsByClassName("tstate")[0].innerHTML = 'running...'
     else
-      $('td.tstate').text 'task finished'    
+      document.getElementsByClassName("tstate")[0].innerHTML = 'task finished'    
 
   socket.on 'workerOut', (data) ->
     console.log "worker lost",data
-    for w,x of jobInfo.workers
-      x.active = false if w == data.from
-    flushWorkers(data.from,jobInfo.workers[data.from])
-    $('td.tsourceNum').text (w for w,x of jobInfo.workers when x.active).length
-    if (w for w,x of jobInfo.workers when x.active).length > 0
-      $('td.tstate').text 'running...'
+    return unless jobInfo.workers[data.from]
+    jobInfo.workers[data.from].active = false
+    jobInfo.workers[data.from].doms.light.getElementsByClassName('twinkle')[0].classList.remove 'twinkle-on'
+
+    nodeCnt = (w for w,x of jobInfo.workers when x.active).length
+    document.getElementsByClassName("tsourceNum")[0].innerHTML = nodeCnt
+    activeCnt = (w for w,x of jobInfo.workers when x.active).length
+    if activeCnt > 0
+      document.getElementsByClassName("tstate")[0].innerHTML = 'running...'
     else
-      $('td.tstate').text 'task finished'
+      document.getElementsByClassName("tstate")[0].innerHTML = 'task finished'
 
 
