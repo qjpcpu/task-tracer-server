@@ -62,10 +62,10 @@ $ ->
         flushWorkers(id,jobInfo.workers[id])
 
     if jobInfo.socket
-      attachList = (w for w,x of jobInfo.workers when x.visible)
-      jobInfo.socket.emit 'attach',from: attachList if attachList.length > 0
-      detachList = (w for w,x of jobInfo.workers when not x.visible)
-      jobInfo.socket.emit 'detach',from: detachList if detachList.length > 0
+      if w.visible
+        jobInfo.socket.emit 'attach',from: [from]
+      else
+        jobInfo.socket.emit 'detach',from: [from]
 
 
   url = urlPrase window.location.href,true
