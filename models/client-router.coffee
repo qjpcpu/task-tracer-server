@@ -30,9 +30,7 @@ class ClientRouter
     ], (err) ->
       browserPayload =
         type: 'browser_token'
-      browserToken = jwt.sign browserPayload, jwtCfg.browserToken.secret, jwtCfg.browserToken.options
-      log jwtCfg.browserToken.secret
-      log browserToken    
+      browserToken = jwt.sign browserPayload, jwtCfg.browserToken.secret, jwtCfg.browserToken.options  
       socket.emit 'authenticated',
         httpUrl: "#{config.me.host}/tasks/#{clientConfig.task.name}/?accessToken=#{browserToken}&id=#{clientConfig.id}"
 
@@ -41,11 +39,13 @@ class ClientRouter
       socket.in(clientConfig.room).emit 'data',from: clientConfig.id,data: data
 
     socket.on 'eof', (data) ->
-      log "client:#{clientConfig.id},task:#{clientConfig.task.name} exit with #{data.code}"
+      log "client:#{clientConfig.id},task:#{clientConfig.task.name} exit with #{data.code},signal: #{data.signal}"
       socket.in(clientConfig.room).emit 'eof',
         from: clientConfig.id
         code: data.code
         signal: data.signal
+      # tag eof for this socket
+      clientConfig.eof = true
       socket.emit 'bye',
         code: data.code
         signal: data.signal
@@ -54,6 +54,13 @@ class ClientRouter
 
     socket.on 'disconnect', ->
       if clientConfig
+        unless clientConfig.eof
+          clientConfig.eof = true
+          socket.in(clientConfig.room).emit 'eof',
+            from: clientConfig.id
+            code: 999
+            message: "Lost connection with #{clientConfig.id} unexpected!"
+          log "client:#{clientConfig.id},task:#{clientConfig.task.name} exit unexpected!!!"
         socket.in(clientConfig.task.name).emit 'workerOut', from: clientConfig.id
         log "#{clientConfig.id} leave"
       else
