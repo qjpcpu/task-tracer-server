@@ -190,7 +190,7 @@ $ ->
         from: data.from
         active: true
         visible: false
-        isNew: true
+      jobInfo.flushDom data.from
 
   socket.on 'workerOut', (data) ->
     return unless jobInfo.workers[data.from]
@@ -201,9 +201,6 @@ $ ->
     state: document.getElementsByClassName("tstate")[0]
     count: document.getElementsByClassName("tsourceNum")[0]
   setInterval (->
-    for w,x of jobInfo.workers when x.isNew
-      delete x.isNew
-      jobInfo.flushDom w
     nodeCnt = (w for w,x of jobInfo.workers when x.active).length
     headBar.count.innerHTML = nodeCnt
     activeCnt = (w for w,x of jobInfo.workers when x.active).length
