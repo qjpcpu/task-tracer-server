@@ -13,6 +13,7 @@ class BrowserRouter
       setTimeout (-> socket.disconnect()),1000
       return
 
+    browserConfig.from = (f for f in browserConfig.from when f?)
     socket.on 'disconnect', ->
       if browserConfig
         for s in browserConfig.from
