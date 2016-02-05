@@ -25,6 +25,11 @@ config =
       options:
         algorithm: 'HS256'
         expiresIn: '1 day' # expressed in seconds or an string describing a time span rauchg/ms. Eg: 60, "2 days", "10h", "7d"
+    baseToken:
+      secret: 'ak'
+      options:
+        algorithm: 'HS256'
+        expiresIn: '1 year'
 
 filename = path.join __dirname,'rc/real-config.json'
 

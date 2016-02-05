@@ -25,7 +25,11 @@ inquirer.prompt [
         value: 'client_token'
       }
       {
-        name: 'Both'
+        name: 'Base token'
+        value: 'base_token'
+      }
+      {
+        name: 'Both browser token & client token'
         value: 'both'
       }
     ]
@@ -84,6 +88,19 @@ inquirer.prompt [
         console.log "Your browser token is:\n#{token}"
         cb()
       else
-        cb()    
+        cb()
+    (cb) ->
+      if answers.type == 'base_token'
+        payload =
+          type: 'base_token'
+          ns: answers.ns
+        options = 
+          algorithm: jwtCfg.baseToken.options.algorithm
+          expiresIn: answers.period
+        token = jwt.sign payload,jwtCfg.baseToken.secret, options
+        console.log "Your base token is:\n#{token}"
+        cb()
+      else
+        cb()          
   ], (err) ->
     'done'
