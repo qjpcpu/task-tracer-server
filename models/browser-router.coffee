@@ -16,8 +16,8 @@ class BrowserRouter
     socket.on 'disconnect', ->
       if browserConfig
         for s in browserConfig.from
-          socket.leave "#{browserConfig.task.name}:#{s}"
-        socket.leave "#{browserConfig.task.name}"
+          socket.leave "#{browserConfig.ns}:#{browserConfig.task.name}:#{s}"
+        socket.leave "#{browserConfig.ns}:#{browserConfig.task.name}"
         log "browser leave"
       else
         log 'browser leave'
@@ -26,23 +26,23 @@ class BrowserRouter
       log 'attach',data
       if data?.from? and (data.from instanceof Array)
         for worker in data.from when worker not in browserConfig.from
-          socket.join "#{browserConfig.task.name}:#{worker}"
+          socket.join "#{browserConfig.ns}:#{browserConfig.task.name}:#{worker}"
           browserConfig.from.push worker
-          log "browser join room[#{browserConfig.task.name}:#{worker}]"
+          log "browser join room[#{browserConfig.ns}:#{browserConfig.task.name}:#{worker}]"
 
     socket.on 'detach', (data) ->
       log 'detach',data
       if data?.from? and (data.from instanceof Array)
         for worker in data.from when worker in browserConfig.from
-          socket.leave "#{browserConfig.task.name}:#{worker}"
-          log "browser leave room[#{browserConfig.task.name}:#{worker}]"
+          socket.leave "#{browserConfig.ns}:#{browserConfig.task.name}:#{worker}"
+          log "browser leave room[#{browserConfig.ns}:#{browserConfig.task.name}:#{worker}]"
         browserConfig.from = (e for e in browserConfig.from when e not in data.from)
 
-    socket.join "#{browserConfig.task.name}"
-    log "browser join room[#{browserConfig.task.name}]"
+    socket.join "#{browserConfig.ns}:#{browserConfig.task.name}"
+    log "browser join room[#{browserConfig.ns}:#{browserConfig.task.name}]"
     for s in browserConfig.from
-      socket.join "#{browserConfig.task.name}:#{s}"
-      log "browser join room[#{browserConfig.task.name}:#{s}]"
+      socket.join "#{browserConfig.ns}:#{browserConfig.task.name}:#{s}"
+      log "browser join room[#{browserConfig.ns}:#{browserConfig.task.name}:#{s}]"
     
     socket.emit 'authenticated', browserConfig
 

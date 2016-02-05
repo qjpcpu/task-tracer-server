@@ -1,57 +1,89 @@
-#!/usr/bin/env node
-require("coffee-script/register")
-var inquirer, jwt, jwtCfg;
-inquirer = require("inquirer");
-jwtCfg = require('../config').jwt;
-jwt = require('jsonwebtoken');
-inquirer.prompt([
+#!/usr/bin/env coffee
+inquirer = require 'inquirer'
+async = require 'async'
+jwtCfg = require('../config').jwt
+jwt = require 'jsonwebtoken'
+
+inquirer.prompt [
   {
-    type: 'list',
-    name: 'type',
-    message: 'Select token type',
+    type: 'input'
+    name: 'ns'
+    message: 'Specify namespace the token belongs to'
+    default: 'default'
+  }
+  {
+    type: 'list'
+    name: 'type'
+    message: 'Select token type'
     choices: [
       {
-        name: 'Browser token',
+        name: 'Browser token'
         value: 'browser_token'
-      }, {
-        name: 'Client token',
+      }
+      {
+        name: 'Client token'
         value: 'client_token'
       }
+      {
+        name: 'Both'
+        value: 'both'
+      }
     ]
-  },
+  }
   {
-    type: 'list',
-    name: 'period',
-    message: 'Select token valid period',
+    type: 'list'
+    name: 'period'
+    message: 'Select token valid period'
     choices: [
       {
-        name: '1 day',
+        name: '1 day'
         value: '1 day'
-      }, {
-        name: '7 days',
+      }
+      {
+        name: '7 days'
         value: '7 days'
-      }, {
-        name: '1 month',
+      }
+      {
+        name: '1 month'
         value: '30 days'
-      }, {
-        name: '3 months',
+      }
+      {
+        name: '3 months'
         value: '180 days'
-      }, {
-        name: '1 year',
+      }
+      {
+        name: '1 year'
         value: '1 year'
       }
     ]
   }
-], function(answers) {
-  var payload, token, options, secret;
-  payload = {
-    type: answers.type
-  };
-  options = {
-    algorithm: answers.type === 'client_token' ? jwtCfg.clientToken.options.algorithm : jwtCfg.browserToken.options.algorithm,
-    expiresIn: answers.period
-  };
-  secret = answers.type === 'client_token' ? jwtCfg.clientToken.secret : jwtCfg.browserToken.secret;
-  token = jwt.sign(payload, secret, options);
-  return console.log("Your token is:\n" + token);
-});
+], (answers) ->
+  async.waterfall [
+    (cb) ->
+      if answers.type == 'client_token' or answers.type == 'both'
+        payload =
+          type: 'client_token'
+          ns: answers.ns
+        options = 
+          algorithm: jwtCfg.clientToken.options.algorithm
+          expiresIn: answers.period
+        token = jwt.sign payload,jwtCfg.clientToken.secret, options
+        console.log "Your client token is:\n#{token}"
+        cb()
+      else
+        cb()
+    (cb) ->
+      if answers.type == 'browser_token' or answers.type == 'both'
+        payload =
+          type: 'browser_token'
+          ns: answers.ns
+        options = 
+          algorithm: jwtCfg.browserToken.options.algorithm
+          expiresIn: answers.period
+        token = jwt.sign payload,jwtCfg.browserToken.secret, options
+        console.log "Your browser token is:\n#{token}"
+        cb()
+      else
+        cb()    
+  ], (err) ->
+    'done'

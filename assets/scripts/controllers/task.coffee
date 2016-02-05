@@ -159,6 +159,7 @@ $ ->
       $('p.shell-top-bar').text data.error
     else
       jobInfo.socket = socket
+      document.getElementsByClassName("tnamespace")[0].innerHTML = data.ns
   
   socket.on 'start',(data) ->
     if jobInfo.workers[data.from]

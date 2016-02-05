@@ -26,11 +26,13 @@ SocketServer =
                 new ClientRouter().forSocket socket,
                   id: data.id
                   task: data.task
+                  ns: payload.ns or ''
               when 'browser_token'
                 log 'browser authenticate OK',payload
                 new BrowserRouter().forSocket socket,
                   task: name: data.watch.task
                   from: data.watch.from
+                  ns: payload.ns or ''
               else
                 log "invalid payload",payload
                 socket.disconnect()

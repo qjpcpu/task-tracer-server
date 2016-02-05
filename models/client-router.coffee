@@ -15,21 +15,22 @@ class ClientRouter
       return
     
     # set room
-    clientConfig.room = "#{clientConfig.task.name}:#{clientConfig.id}"
+    clientConfig.room = "#{clientConfig.ns}:#{clientConfig.task.name}:#{clientConfig.id}"
     async.waterfall [
       (cb) ->
-        socket.in(clientConfig.task.name).emit 'workerIn', from: clientConfig.id
+        socket.in("#{clientConfig.ns}:#{clientConfig.task.name}").emit 'workerIn', from: clientConfig.id
         setTimeout cb,500
       (cb) ->
         socket.in(clientConfig.room).emit 'start',
           from: clientConfig.id
           task: clientConfig.task
-        log "monitor client(#{clientConfig.id})for task[#{clientConfig.task.name}]"
+        log "monitor client(#{clientConfig.id}) for task[#{clientConfig.ns}:#{clientConfig.task.name}]"
         log clientConfig.task.cmd
         cb()
     ], (err) ->
       browserPayload =
         type: 'browser_token'
+        ns: clientConfig.ns
       browserToken = jwt.sign browserPayload, jwtCfg.browserToken.secret, jwtCfg.browserToken.options  
       socket.emit 'authenticated',
         httpUrl: "#{config.me.host}/tasks/#{clientConfig.task.name}/?accessToken=#{browserToken}&id=#{clientConfig.id}"
@@ -39,7 +40,7 @@ class ClientRouter
       socket.in(clientConfig.room).emit 'data',from: clientConfig.id,data: data
 
     socket.on 'eof', (data) ->
-      log "client:#{clientConfig.id},task:#{clientConfig.task.name} exit with #{data.code},signal: #{data.signal}"
+      log "client:#{clientConfig.id},task:#{clientConfig.ns}:#{clientConfig.task.name} exit with #{data.code},signal: #{data.signal}"
       socket.in(clientConfig.room).emit 'eof',
         from: clientConfig.id
         code: data.code
@@ -61,7 +62,7 @@ class ClientRouter
             code: 999
             message: "Lost connection with #{clientConfig.id} unexpected!"
           log "client:#{clientConfig.id},task:#{clientConfig.task.name} exit unexpected!!!"
-        socket.in(clientConfig.task.name).emit 'workerOut', from: clientConfig.id
+        socket.in("#{clientConfig.ns}:#{clientConfig.task.name}").emit 'workerOut', from: clientConfig.id
         log "#{clientConfig.id} leave"
       else
         log 'client leave'
