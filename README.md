@@ -79,7 +79,7 @@ Launch task from client
 
 ```
 $ TASK_TRACER_NAME=test ./dist/tt 'echo hello browser;sleep 1;echo "I am `whoami`"'
-View https://tt.iop.tap4fun.com/tasks/test/?accessToken=eyJ0eXAi&id=i-7361c17d for task output
+View https://tt.example.com/tasks/test/?accessToken=eyJ0eXAi&id=i-7361c17d for task output
 hello browser
 I am ubuntu
 ```
